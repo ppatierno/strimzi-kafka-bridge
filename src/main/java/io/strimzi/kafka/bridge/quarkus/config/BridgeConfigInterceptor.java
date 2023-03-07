@@ -12,7 +12,6 @@ import io.strimzi.kafka.bridge.config.KafkaAdminConfig;
 import io.strimzi.kafka.bridge.config.KafkaConfig;
 import io.strimzi.kafka.bridge.config.KafkaConsumerConfig;
 import io.strimzi.kafka.bridge.config.KafkaProducerConfig;
-import io.strimzi.kafka.bridge.http.HttpConfig;
 
 /**
  * Bridge configuration interceptor
@@ -22,6 +21,7 @@ import io.strimzi.kafka.bridge.http.HttpConfig;
  *   (i.e. kafka.consumer.auto.offset.reset has to be mapped to kafka.consumer."auto.offset.reset")
  * - relocate the http.* properties to corresponding quarkus.http.* to allow users continuing to use our prefix
  */
+@SuppressWarnings("NPathComplexity")
 public class BridgeConfigInterceptor implements ConfigSourceInterceptor {
 
     @Override
@@ -39,19 +39,19 @@ public class BridgeConfigInterceptor implements ConfigSourceInterceptor {
         if (s.startsWith(KafkaConfig.KAFKA_CONFIG_PREFIX)) {
             return cv.withName(this.withQuotes(KafkaConfig.KAFKA_CONFIG_PREFIX, s));
         }
-        if (s.equals(HttpConfig.HTTP_PORT)) {
+        if (s.equals("http.port")) {
             return cv.withName("quarkus.http.port");
         }
-        if (s.equals(HttpConfig.HTTP_HOST)) {
+        if (s.equals("http.host")) {
             return cv.withName("quarkus.http.host");
         }
-        if (s.equals(HttpConfig.HTTP_CORS_ENABLED)) {
+        if (s.equals("http.cors.enabled")) {
             return cv.withName("quarkus.http.cors");
         }
-        if (s.equals(HttpConfig.HTTP_CORS_ALLOWED_ORIGINS)) {
+        if (s.equals("http.cors.allowedOrigins")) {
             return cv.withName("quarkus.http.cors.origins");
         }
-        if (s.equals(HttpConfig.HTTP_CORS_ALLOWED_METHODS)) {
+        if (s.equals("http.cors.allowedMethods")) {
             return cv.withName("quarkus.http.cors.methods");
         }
         return cv;
