@@ -29,6 +29,7 @@ import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jboss.logging.Logger;
 
 import javax.annotation.PostConstruct;
@@ -71,6 +72,9 @@ public class RestBridge {
 
     @Inject
     HttpConfig httpConfig;
+
+    @Inject
+    ManagedExecutor managedExecutor;
 
     private RestBridgeContext<byte[], byte[]> httpBridgeContext;
 
@@ -122,7 +126,7 @@ public class RestBridge {
                                           @PathParam("topicname") String topicName, @QueryParam("async") boolean async) {
         log.tracef("send thread %s", Thread.currentThread());
         RestSourceBridgeEndpoint<byte[], byte[]> source = this.getRestSourceBridgeEndpoint(routingContext, contentType);
-        return source.send(routingContext, body, topicName, async);
+        return source.send(body, topicName, async);
     }
 
     @Path("/topics/{topicname}/partitions/{partitionid}")
@@ -133,7 +137,7 @@ public class RestBridge {
                                           @PathParam("topicname") String topicName, @PathParam("partitionid") String partitionId, @QueryParam("async") boolean async) {
         log.tracef("send thread %s", Thread.currentThread());
         RestSourceBridgeEndpoint<byte[], byte[]> source = this.getRestSourceBridgeEndpoint(routingContext, contentType);
-        return source.send(routingContext, body, topicName, partitionId, async);
+        return source.send(body, topicName, partitionId, async);
     }
 
     @Path("/topics")
@@ -239,12 +243,11 @@ public class RestBridge {
     @Path("/consumers/{groupid}/instances/{name}/records")
     @GET
     @Produces({BridgeContentType.KAFKA_JSON_JSON, BridgeContentType.KAFKA_JSON_BINARY, BridgeContentType.KAFKA_JSON})
-    public CompletionStage<Response> poll(@Context RoutingContext routingContext, @PathParam("groupid") String groupId, @PathParam("name") String name,
-                                          @HeaderParam("Accept") String accept,
+    public CompletionStage<Response> poll(@PathParam("groupid") String groupId, @PathParam("name") String name, @HeaderParam("Accept") String accept,
                                           @QueryParam("timeout") Integer timeout, @QueryParam("max_bytes") Integer maxBytes) {
         log.tracef("poll thread %s", Thread.currentThread());
         RestSinkBridgeEndpoint<byte[], byte[]> sink = this.getRestSinkBridgeEndpoint(groupId, name);
-        return sink.poll(routingContext, accept, timeout, maxBytes);
+        return sink.poll(accept, timeout, maxBytes);
     }
 
     @Path("/consumers/{groupid}/instances/{name}/subscription")
@@ -379,7 +382,7 @@ public class RestBridge {
         try {
             if (source == null) {
                 source = new RestSourceBridgeEndpoint<>(this.bridgeConfig, this.kafkaConfig, contentTypeToFormat(contentType),
-                        new ByteArraySerializer(), new ByteArraySerializer());
+                        this.managedExecutor, new ByteArraySerializer(), new ByteArraySerializer());
 
                 source.closeHandler(s -> {
                     this.httpBridgeContext.getHttpSourceEndpoints().remove(httpConnection);
@@ -445,7 +448,7 @@ public class RestBridge {
             EmbeddedFormat format = EmbeddedFormat.from(JsonUtils.getString(jsonBody, "format", "binary"));
 
             sink = new RestSinkBridgeEndpoint<>(this.bridgeConfig, this.kafkaConfig, this.httpBridgeContext, format,
-                    new ByteArrayDeserializer(), new ByteArrayDeserializer());
+                    this.managedExecutor, new ByteArrayDeserializer(), new ByteArrayDeserializer());
 
             sink.closeHandler(endpoint -> {
                 RestSinkBridgeEndpoint<byte[], byte[]> httpEndpoint = (RestSinkBridgeEndpoint<byte[], byte[]>) endpoint;
