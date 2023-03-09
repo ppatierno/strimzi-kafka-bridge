@@ -28,7 +28,6 @@ import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jboss.logging.Logger;
 
@@ -61,9 +60,6 @@ public class RestBridge {
     @Inject
     Logger log;
 
-    @ConfigProperty(name = "quarkus.http.port")
-    Integer httpPort;
-
     @Inject
     BridgeConfig bridgeConfig;
 
@@ -95,7 +91,7 @@ public class RestBridge {
         }
         this.isReady = true;
 
-        log.infof("HTTP-Kafka Bridge started and listening on port %s", this.httpPort);
+        log.infof("HTTP-Kafka Bridge started and listening on port %s", this.httpConfig.port());
         log.infof("HTTP-Kafka Bridge bootstrap servers %s",
                 this.kafkaConfig.common().get(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG));
     }

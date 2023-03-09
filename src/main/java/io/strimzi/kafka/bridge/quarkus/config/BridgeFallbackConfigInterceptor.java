@@ -13,6 +13,15 @@ import io.strimzi.kafka.bridge.config.KafkaProducerConfig;
 
 import java.util.function.Function;
 
+/**
+ * Bridge fallback configuration interceptor
+ * It removes double quotes around all Kafka common/admin/producer/consumer properties added by the {@link BridgeRelocateConfigInterceptor}.
+ * It is needed for how Quarkus configuration works: with the relocate first, it adds the quotes to make our application.properties
+ * compatible with Quarkus and adding the key in the Map(s) of the {@link io.strimzi.kafka.bridge.quarkus.config.KafkaConfig}.
+ * With the fallback, it goes from the property with quotes to the one without quotes for getting the value (the application.properties doesn't have quotes).
+ * For example, kafka."foo.bar" is the key in the Map of the {@link io.strimzi.kafka.bridge.quarkus.config.KafkaConfig} but
+ * looking for a value this property doesn't exist so we fallback to kafka.foo.bar, get the value from the application.properties and fill the Map.
+ */
 public class BridgeFallbackConfigInterceptor extends FallbackConfigSourceInterceptor {
     public BridgeFallbackConfigInterceptor() {
         super(new Function<String, String>() {
