@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.quarkus.runtime.Startup;
+import io.quarkus.scheduler.Scheduled;
 import io.strimzi.kafka.bridge.Application;
 import io.strimzi.kafka.bridge.BridgeContentType;
 import io.strimzi.kafka.bridge.ConsumerInstanceId;
@@ -47,6 +48,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -78,6 +80,8 @@ public class RestBridge {
 
     private boolean isReady = false;
 
+    public static int timeout = -1;
+
     @PostConstruct
     public void init() {
         this.timestampMap = new HashMap<>();
@@ -85,9 +89,9 @@ public class RestBridge {
         RestAdminBridgeEndpoint adminClientEndpoint = new RestAdminBridgeEndpoint(this.bridgeConfig, this.kafkaConfig);
         this.httpBridgeContext.setHttpAdminEndpoint(adminClientEndpoint);
         adminClientEndpoint.open();
-
-        if (this.httpConfig.timeoutSeconds() > -1) {
-            startInactiveConsumerDeletionTimer(this.httpConfig.timeoutSeconds());
+        long timeout = Long.parseLong(this.httpConfig.timeoutSeconds().substring(0, this.httpConfig.timeoutSeconds().length() - 1));
+        if (timeout > -1) {
+            startInactiveConsumerDeletionTimer();
         }
         this.isReady = true;
 
@@ -549,7 +553,23 @@ public class RestBridge {
         return this.isReady;
     }
 
-    private void startInactiveConsumerDeletionTimer(Long timeout) {
-        // TODO: to be used a Quarkus timer for scheduling the task
+    @Scheduled(every = "${http.timeoutSeconds:off}")
+    protected void startInactiveConsumerDeletionTimer() {
+
+        long timeoutInMs = Long.parseLong(this.httpConfig.timeoutSeconds().substring(0, this.httpConfig.timeoutSeconds().length() - 1));
+        log.tracef("Looking for stale consumers in {} entries", timestampMap.size());
+        Iterator<Map.Entry<ConsumerInstanceId, Long>> it = timestampMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<ConsumerInstanceId, Long> item = it.next();
+            if (item.getValue() + timeoutInMs < System.currentTimeMillis()) {
+                RestSinkBridgeEndpoint<byte[], byte[]> deleteSinkEndpoint = this.httpBridgeContext.getHttpSinkEndpoints().get(item.getKey());
+                if (deleteSinkEndpoint != null) {
+                    deleteSinkEndpoint.close();
+                    this.httpBridgeContext.getHttpSinkEndpoints().remove(item.getKey());
+                    log.tracef("Consumer {} deleted after inactivity timeout ({}s).", item.getKey(), timeoutInMs);
+                    timestampMap.remove(item.getKey());
+                }
+            }
+        }
     }
 }

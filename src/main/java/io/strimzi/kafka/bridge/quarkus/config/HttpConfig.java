@@ -36,8 +36,8 @@ public interface HttpConfig {
     /**
      * @return HTTP consumer timeouts
      */
-    @WithDefault("-1")
-    long timeoutSeconds();
+    @WithDefault("-1s")
+    String timeoutSeconds();
 
     /**
      * @return HTTP consumer related configuration
