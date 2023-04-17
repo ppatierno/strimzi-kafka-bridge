@@ -12,6 +12,7 @@ import io.quarkus.runtime.Startup;
 import io.strimzi.kafka.bridge.Application;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.management.MalformedObjectNameException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,6 +46,11 @@ public class JmxCollectorRegistry {
             new JmxCollector(yaml).register();
             collectorRegistry = CollectorRegistry.defaultRegistry;
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        collectorRegistry.clear();
     }
 
     /**
