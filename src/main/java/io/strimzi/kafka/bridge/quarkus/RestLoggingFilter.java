@@ -26,28 +26,38 @@ public class RestLoggingFilter {
 
     @ServerRequestFilter
     public void requestFilter(ContainerRequestContext requestContext, SimpleResourceInfo resourceInfo, HttpServerRequest httpServerRequest) {
-        Logger logger = loggers.get(resourceInfo.getMethodName());
+        // resourceInfo is null if there is no match with one of the available declared REST endpoints
+        if (resourceInfo != null) {
+            Logger logger = loggers.get(resourceInfo.getMethodName());
 
-        String requestLogHeader = this.requestLogHeader(requestContext, resourceInfo);
-        logger.infof("%s Request: from %s, method = %s, path = %s",
-                requestLogHeader, httpServerRequest.remoteAddress(), // TODO: do we want HttpServerRequest (from Vert.x) just for this??
-                requestContext.getMethod(),
-                requestContext.getUriInfo().getPath());
-        logger.debugf("%s Request: headers = %s", requestLogHeader, requestContext.getHeaders());
+            if (logger != null) {
+                String requestLogHeader = this.requestLogHeader(requestContext, resourceInfo);
+                logger.infof("%s Request: from %s, method = %s, path = %s",
+                        requestLogHeader, httpServerRequest.remoteAddress(), // TODO: do we want HttpServerRequest (from Vert.x) just for this??
+                        requestContext.getMethod(),
+                        requestContext.getUriInfo().getPath());
+                logger.debugf("%s Request: headers = %s", requestLogHeader, requestContext.getHeaders());
+            }
+        }
     }
 
     @ServerResponseFilter
     public void responseFilter(ContainerRequestContext requestContext, ContainerResponseContext responseContext, SimpleResourceInfo resourceInfo) {
-        Logger logger = loggers.get(resourceInfo.getMethodName());
+        // resourceInfo is null if there is no match with one of the available declared REST endpoints
+        if (resourceInfo != null) {
+            Logger logger = loggers.get(resourceInfo.getMethodName());
 
-        String requestLogHeader = this.requestLogHeader(requestContext, resourceInfo);
-        logger.infof("%s Response: statusCode = %s, message = %s",
-                requestLogHeader, responseContext.getStatusInfo().getStatusCode(),
-                responseContext.getStatusInfo().getReasonPhrase());
-        logger.debugf("%s Response: headers = %s", requestLogHeader, responseContext.getHeaders());
-        if (responseContext.getEntity() != null) {
-            byte[] body = (byte[]) responseContext.getEntity();
-            logger.debugf("%s Response: body = %s", requestLogHeader, JsonUtils.bytesToJson(body));
+            if (logger != null) {
+                String requestLogHeader = this.requestLogHeader(requestContext, resourceInfo);
+                logger.infof("%s Response: statusCode = %s, message = %s",
+                        requestLogHeader, responseContext.getStatusInfo().getStatusCode(),
+                        responseContext.getStatusInfo().getReasonPhrase());
+                logger.debugf("%s Response: headers = %s", requestLogHeader, responseContext.getHeaders());
+                if (responseContext.getEntity() != null) {
+                    byte[] body = (byte[]) responseContext.getEntity();
+                    logger.debugf("%s Response: body = %s", requestLogHeader, JsonUtils.bytesToJson(body));
+                }
+            }
         }
     }
 

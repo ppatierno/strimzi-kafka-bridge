@@ -52,6 +52,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -83,6 +84,9 @@ public class RestBridge {
 
     @Inject
     ManagedExecutor managedExecutor;
+
+    @Inject
+    MetricsReporter metricsReporter;
 
     private RestBridgeContext<byte[], byte[]> httpBridgeContext;
 
@@ -340,6 +344,14 @@ public class RestBridge {
     public CompletionStage<Response> ready() {
         HttpResponseStatus httpResponseStatus = this.isReady() ? HttpResponseStatus.OK : HttpResponseStatus.NOT_FOUND;
         Response response = RestUtils.buildResponse(httpResponseStatus.code(), null, null);
+        return CompletableFuture.completedStage(response);
+    }
+
+    @Path("/metrics")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public CompletionStage<Response> metrics() {
+        Response response = RestUtils.buildResponse(HttpResponseStatus.OK.code(), MediaType.TEXT_PLAIN, this.metricsReporter.scrape().getBytes());
         return CompletableFuture.completedStage(response);
     }
 
