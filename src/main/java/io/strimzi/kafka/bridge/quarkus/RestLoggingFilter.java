@@ -5,6 +5,7 @@
 
 package io.strimzi.kafka.bridge.quarkus;
 
+import io.strimzi.kafka.bridge.http.HttpOpenApiOperations;
 import io.strimzi.kafka.bridge.http.converter.JsonUtils;
 import io.vertx.core.http.HttpServerRequest;
 import org.jboss.logging.Logger;
@@ -53,7 +54,8 @@ public class RestLoggingFilter {
                         requestLogHeader, responseContext.getStatusInfo().getStatusCode(),
                         responseContext.getStatusInfo().getReasonPhrase());
                 logger.debugf("%s Response: headers = %s", requestLogHeader, responseContext.getHeaders());
-                if (responseContext.getEntity() != null) {
+                // excluding the "metrics" endpoint because it doesn't return JSON but text/plain Prometheus format
+                if (responseContext.getEntity() != null && !HttpOpenApiOperations.METRICS.toString().equals(resourceInfo.getMethodName())) {
                     byte[] body = (byte[]) responseContext.getEntity();
                     logger.debugf("%s Response: body = %s", requestLogHeader, JsonUtils.bytesToJson(body));
                 }
