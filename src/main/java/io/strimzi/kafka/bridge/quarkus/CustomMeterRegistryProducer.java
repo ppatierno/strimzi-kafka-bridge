@@ -70,6 +70,14 @@ public class CustomMeterRegistryProducer extends PrometheusMeterRegistry {
             String metricName = name.startsWith("http.") ? "strimzi.bridge." + name : name;
             return super.name(metricName, type, baseUnit);
         }
+
+        @Override
+        public String tagKey(String key) {
+            String tag = key.replace("uri", "path").replace("status", "code");;
+
+            System.out.println(key);
+            return super.tagKey(tag);
+        }
     }
 }
 
