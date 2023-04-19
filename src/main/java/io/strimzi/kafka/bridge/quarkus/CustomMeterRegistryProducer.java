@@ -73,9 +73,7 @@ public class CustomMeterRegistryProducer extends PrometheusMeterRegistry {
 
         @Override
         public String tagKey(String key) {
-            String tag = key.replace("uri", "path").replace("status", "code");;
-
-            System.out.println(key);
+            String tag = key.replace("uri", "path").replace("status", "code");
             return super.tagKey(tag);
         }
     }
