@@ -6,6 +6,7 @@
 package io.strimzi.kafka.bridge.quarkus;
 
 import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.micrometer.prometheus.PrometheusNamingConvention;
@@ -26,6 +27,8 @@ public class CustomMeterRegistryProducer extends PrometheusMeterRegistry {
 
     @PostConstruct
     void init() {
+        this.config().meterFilter(
+                MeterFilter.deny(meter -> "/metrics".equals(meter.getTag("uri"))));
         this.config().namingConvention(new CustomMeterRegistryProducer.MetricsNamingConvention());
     }
 
@@ -51,13 +54,10 @@ public class CustomMeterRegistryProducer extends PrometheusMeterRegistry {
     @Override
     public String scrape() {
         StringBuilder sb = new StringBuilder();
-
         if (Boolean.parseBoolean(System.getenv("KAFKA_BRIDGE_METRICS_ENABLED"))) {
-
             if (restJmxCollectorRegistry != null) {
                 sb.append(restJmxCollectorRegistry.scrape());
             }
-
             sb.append(super.scrape());
         }
 
