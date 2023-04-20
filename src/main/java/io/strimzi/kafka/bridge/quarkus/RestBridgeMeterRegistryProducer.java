@@ -18,8 +18,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * Scrapes Quarkus http server related metrics and the Kafka related metrics coming through JMX collector
- * and generates a custom prometheus meter registry based upon it.
+ * Provides a custom Prometheus registry able to host both Quarkus built-in HTTP related metrics
+ * and Kafka clients related metrics coming through JMX collector
  */
 @Singleton
 public class RestBridgeMeterRegistryProducer extends PrometheusMeterRegistry {
@@ -52,7 +52,8 @@ public class RestBridgeMeterRegistryProducer extends PrometheusMeterRegistry {
     }
 
     /**
-     * Scrape metrics on the provided registries returning them in the Prometheus format
+     * Scrape Quarkus built-in meter registry for HTTP related metrics and
+     * JMX collector registry for Kafka clients related metrics
      *
      * @return metrics in Prometheus format as String
      */
