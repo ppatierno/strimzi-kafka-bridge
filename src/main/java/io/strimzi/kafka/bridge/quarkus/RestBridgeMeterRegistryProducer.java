@@ -10,6 +10,7 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.micrometer.prometheus.PrometheusNamingConvention;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Produces;
@@ -17,10 +18,14 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * Used for scraping and reporting metrics in Prometheus format
+ * Scrapes Quarkus http server related metrics and the Kafka related metrics coming through JMX collector
+ * and generates a custom prometheus meter registry based upon it.
  */
 @Singleton
-public class CustomMeterRegistryProducer extends PrometheusMeterRegistry {
+public class RestBridgeMeterRegistryProducer extends PrometheusMeterRegistry {
+
+    @ConfigProperty(name = "kafka.bridge.metrics.enabled", defaultValue = "false")
+    boolean isMetricsEnabled;
 
     @Inject
     JmxCollectorRegistry restJmxCollectorRegistry;
@@ -29,20 +34,20 @@ public class CustomMeterRegistryProducer extends PrometheusMeterRegistry {
     void init() {
         this.config().meterFilter(
                 MeterFilter.deny(meter -> "/metrics".equals(meter.getTag("uri"))));
-        this.config().namingConvention(new CustomMeterRegistryProducer.MetricsNamingConvention());
+        this.config().namingConvention(new RestBridgeMeterRegistryProducer.MetricsNamingConvention());
     }
 
     /**
      * Came in as part of extending `PrometheusMeterRegistry since
      * it has no default constructors available
      */
-    private CustomMeterRegistryProducer(PrometheusConfig config) {
+    private RestBridgeMeterRegistryProducer(PrometheusConfig config) {
         super(config);
     }
 
     @Produces
     @Singleton
-    CustomMeterRegistryProducer createPrometheusMeterRegistry() {
+    RestBridgeMeterRegistryProducer createPrometheusMeterRegistry() {
         return this;
     }
 
@@ -54,13 +59,12 @@ public class CustomMeterRegistryProducer extends PrometheusMeterRegistry {
     @Override
     public String scrape() {
         StringBuilder sb = new StringBuilder();
-        if (Boolean.parseBoolean(System.getenv("KAFKA_BRIDGE_METRICS_ENABLED"))) {
+        if (isMetricsEnabled) {
             if (restJmxCollectorRegistry != null) {
                 sb.append(restJmxCollectorRegistry.scrape());
             }
             sb.append(super.scrape());
         }
-
         return sb.toString();
     }
 
