@@ -40,7 +40,6 @@ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Deserializer;
 
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response;
@@ -82,9 +81,6 @@ public class RestSinkBridgeEndpoint<K, V> extends RestBridgeEndpoint {
     private ConsumerInstanceId consumerInstanceId;
     private boolean subscribed;
     private boolean assigned;
-
-    @HeaderParam("content-type")
-    String s;
 
     public RestSinkBridgeEndpoint(BridgeConfig bridgeConfig, KafkaConfig kafkaConfig, RestBridgeContext<K, V> context, EmbeddedFormat format,
                                   ExecutorService executorService, Deserializer<K> keyDeserializer, Deserializer<V> valueDeserializer) {
