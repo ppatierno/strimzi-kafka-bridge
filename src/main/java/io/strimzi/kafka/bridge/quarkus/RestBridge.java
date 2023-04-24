@@ -203,9 +203,7 @@ public class RestBridge {
     @POST
     @Consumes(BridgeContentType.KAFKA_JSON)
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> createConsumer(@Context UriInfo uri,
-                                                    @Context HttpHeaders httpHeaders,
-                                                    @Context RoutingContext routingContext, @PathParam("groupid") String groupId, byte[] body) {
+    public CompletionStage<Response> createConsumer(@Context UriInfo uri, @Context HttpHeaders httpHeaders, @PathParam("groupid") String groupId, byte[] body) {
         log.tracef("createConsumer thread %s", Thread.currentThread());
         JsonNode jsonBody = this.getBodyAsJson(body);
         RestSinkBridgeEndpoint<byte[], byte[]> sink = this.doCreateConsumer(jsonBody);
