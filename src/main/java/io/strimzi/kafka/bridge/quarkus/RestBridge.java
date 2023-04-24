@@ -29,30 +29,16 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jboss.logging.Logger;
-import org.quartz.Scheduler;
-import org.quartz.Job;
-import org.quartz.JobBuilder;
-import org.quartz.JobExecutionContext;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.SimpleScheduleBuilder;
-import org.quartz.JobDetail;
+import org.quartz.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -201,11 +187,13 @@ public class RestBridge {
     @POST
     @Consumes(BridgeContentType.KAFKA_JSON)
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> createConsumer(@Context RoutingContext routingContext, @PathParam("groupid") String groupId, byte[] body) {
+    public CompletionStage<Response> createConsumer(@Context UriInfo uri,
+                                                    @Context HttpHeaders httpHeaders,
+                                                    @Context RoutingContext routingContext, @PathParam("groupid") String groupId, byte[] body) {
         log.tracef("createConsumer thread %s", Thread.currentThread());
         JsonNode jsonBody = this.getBodyAsJson(body);
         RestSinkBridgeEndpoint<byte[], byte[]> sink = this.doCreateConsumer(jsonBody);
-        return sink.createConsumer(routingContext, groupId, jsonBody, endpoint -> {
+        return sink.createConsumer(uri, httpHeaders, groupId, jsonBody, endpoint -> {
             RestSinkBridgeEndpoint<byte[], byte[]> httpEndpoint = (RestSinkBridgeEndpoint<byte[], byte[]>) endpoint;
             this.httpBridgeContext.getHttpSinkEndpoints().put(httpEndpoint.consumerInstanceId(), httpEndpoint);
             this.timestampMap.put(httpEndpoint.consumerInstanceId(), System.currentTimeMillis());
