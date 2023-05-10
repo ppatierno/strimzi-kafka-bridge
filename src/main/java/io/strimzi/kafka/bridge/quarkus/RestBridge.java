@@ -17,8 +17,10 @@ import io.strimzi.kafka.bridge.http.HttpOpenApiOperations;
 import io.strimzi.kafka.bridge.http.converter.JsonDecodeException;
 import io.strimzi.kafka.bridge.http.converter.JsonUtils;
 import io.strimzi.kafka.bridge.http.model.HttpBridgeError;
+import io.strimzi.kafka.bridge.quarkus.beans.OffsetRecordSentList;
 import io.strimzi.kafka.bridge.quarkus.beans.OffsetsSummary;
 import io.strimzi.kafka.bridge.quarkus.beans.PartitionMetadata;
+import io.strimzi.kafka.bridge.quarkus.beans.ProducerRecordList;
 import io.strimzi.kafka.bridge.quarkus.beans.TopicMetadata;
 import io.strimzi.kafka.bridge.quarkus.config.BridgeConfig;
 import io.strimzi.kafka.bridge.quarkus.config.HttpConfig;
@@ -140,22 +142,22 @@ public class RestBridge {
     @POST
     @Consumes({BridgeContentType.KAFKA_JSON_JSON, BridgeContentType.KAFKA_JSON_BINARY})
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> send(@Context RoutingContext routingContext, byte[] body, @HeaderParam("Content-Type") String contentType,
-                                          @PathParam("topicname") String topicName, @QueryParam("async") boolean async) {
+    public CompletionStage<OffsetRecordSentList> send(@Context RoutingContext routingContext, ProducerRecordList recordList, @HeaderParam("Content-Type") String contentType,
+                                                      @PathParam("topicname") String topicName, @QueryParam("async") boolean async) {
         log.tracef("send thread %s", Thread.currentThread());
         RestSourceBridgeEndpoint<byte[], byte[]> source = this.getRestSourceBridgeEndpoint(routingContext, contentType);
-        return source.send(body, topicName, async);
+        return source.send(recordList, topicName, async);
     }
 
     @Path("/topics/{topicname}/partitions/{partitionid}")
     @POST
     @Consumes({BridgeContentType.KAFKA_JSON_JSON, BridgeContentType.KAFKA_JSON_BINARY})
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> sendToPartition(@Context RoutingContext routingContext, byte[] body, @HeaderParam("Content-Type") String contentType,
-                                          @PathParam("topicname") String topicName, @PathParam("partitionid") String partitionId, @QueryParam("async") boolean async) {
+    public CompletionStage<OffsetRecordSentList> sendToPartition(@Context RoutingContext routingContext, ProducerRecordList recordList, @HeaderParam("Content-Type") String contentType,
+                                                     @PathParam("topicname") String topicName, @PathParam("partitionid") String partitionId, @QueryParam("async") boolean async) {
         log.tracef("send thread %s", Thread.currentThread());
         RestSourceBridgeEndpoint<byte[], byte[]> source = this.getRestSourceBridgeEndpoint(routingContext, contentType);
-        return source.send(body, topicName, partitionId, async);
+        return source.send(recordList, topicName, partitionId, async);
     }
 
     @Path("/topics")

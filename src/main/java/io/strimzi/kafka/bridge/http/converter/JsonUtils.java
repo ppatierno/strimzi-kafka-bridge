@@ -38,6 +38,20 @@ public class JsonUtils {
     }
 
     /**
+     * Get the JSON bytes array representation of the provided object
+     *
+     * @param o object to cast to JSON
+     * @return bytes array representing the JSON data
+     */
+    public static byte[] objectToBytes(Object o) {
+        try {
+            return MAPPER.writeValueAsBytes(o);
+        } catch (Exception e) {
+            throw new JsonEncodeException("Failed to encode as JSON: " + e.getMessage());
+        }
+    }
+
+    /**
      * Get the JSON representation of the provided bytes array
      *
      * @param bytes bytes array containing JSON data
