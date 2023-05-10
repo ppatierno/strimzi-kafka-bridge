@@ -17,6 +17,9 @@ import io.strimzi.kafka.bridge.http.HttpOpenApiOperations;
 import io.strimzi.kafka.bridge.http.converter.JsonDecodeException;
 import io.strimzi.kafka.bridge.http.converter.JsonUtils;
 import io.strimzi.kafka.bridge.http.model.HttpBridgeError;
+import io.strimzi.kafka.bridge.quarkus.beans.OffsetsSummary;
+import io.strimzi.kafka.bridge.quarkus.beans.PartitionMetadata;
+import io.strimzi.kafka.bridge.quarkus.beans.TopicMetadata;
 import io.strimzi.kafka.bridge.quarkus.config.BridgeConfig;
 import io.strimzi.kafka.bridge.quarkus.config.HttpConfig;
 import io.strimzi.kafka.bridge.quarkus.config.KafkaConfig;
@@ -56,6 +59,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -157,7 +161,7 @@ public class RestBridge {
     @Path("/topics")
     @GET
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> listTopics() throws RestBridgeException {
+    public CompletionStage<List<String>> listTopics() throws RestBridgeException {
         log.tracef("listTopics thread %s", Thread.currentThread());
         RestAdminBridgeEndpoint adminBridgeEndpoint = this.getAdminClientEndpoint();
         return adminBridgeEndpoint.listTopics();
@@ -166,7 +170,7 @@ public class RestBridge {
     @Path("/topics/{topicname}")
     @GET
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> getTopic(@PathParam("topicname") String topicName) throws RestBridgeException {
+    public CompletionStage<TopicMetadata> getTopic(@PathParam("topicname") String topicName) throws RestBridgeException {
         log.tracef("getTopic thread %s", Thread.currentThread());
         RestAdminBridgeEndpoint adminBridgeEndpoint = this.getAdminClientEndpoint();
         return adminBridgeEndpoint.getTopic(topicName);
@@ -175,7 +179,7 @@ public class RestBridge {
     @Path("/topics/{topicname}/partitions")
     @GET
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> listPartitions(@PathParam("topicname") String topicName) throws RestBridgeException {
+    public CompletionStage<List<PartitionMetadata>> listPartitions(@PathParam("topicname") String topicName) throws RestBridgeException {
         log.tracef("listPartitions thread %s", Thread.currentThread());
         RestAdminBridgeEndpoint adminBridgeEndpoint = this.getAdminClientEndpoint();
         return adminBridgeEndpoint.listPartitions(topicName);
@@ -184,7 +188,7 @@ public class RestBridge {
     @Path("/topics/{topicname}/partitions/{partitionid}")
     @GET
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> getPartition(@PathParam("topicname") String topicName, @PathParam("partitionid") String partitionId) {
+    public CompletionStage<PartitionMetadata> getPartition(@PathParam("topicname") String topicName, @PathParam("partitionid") String partitionId) {
         log.tracef("getPartition thread %s", Thread.currentThread());
         RestAdminBridgeEndpoint adminBridgeEndpoint = this.getAdminClientEndpoint();
         return adminBridgeEndpoint.getPartition(topicName, partitionId);
@@ -193,7 +197,7 @@ public class RestBridge {
     @Path("/topics/{topicname}/partitions/{partitionid}/offsets")
     @GET
     @Produces(BridgeContentType.KAFKA_JSON)
-    public CompletionStage<Response> getOffsets(@PathParam("topicname") String topicName, @PathParam("partitionid") String partitionId) {
+    public CompletionStage<OffsetsSummary> getOffsets(@PathParam("topicname") String topicName, @PathParam("partitionid") String partitionId) {
         log.tracef("getOffsets thread %s", Thread.currentThread());
         RestAdminBridgeEndpoint adminBridgeEndpoint = this.getAdminClientEndpoint();
         return adminBridgeEndpoint.getOffsets(topicName, partitionId);
