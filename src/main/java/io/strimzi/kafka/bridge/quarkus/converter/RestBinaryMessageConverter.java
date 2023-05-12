@@ -82,7 +82,7 @@ public class RestBinaryMessageConverter implements RestMessageConverter<byte[], 
         for (Header header: record.headers()) {
             KafkaHeader kafkaHeader = new KafkaHeader();
             kafkaHeader.setKey(header.key());
-            kafkaHeader.setValue(DatatypeConverter.printBase64Binary(header.value()).getBytes());
+            kafkaHeader.setValue(header.value());
             consumerRecord.getHeaders().add(kafkaHeader);
         }
         return consumerRecord;

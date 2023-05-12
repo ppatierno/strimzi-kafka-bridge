@@ -52,6 +52,20 @@ public class JsonUtils {
     }
 
     /**
+     * Get an object of the provided JSON bytes array representation
+     *
+     * @param bytes array representing the JSON data
+     * @return object representing the provided JSON
+     */
+    public static Object bytesToObject(byte[] bytes) {
+        try {
+            return MAPPER.readValue(bytes, Object.class);
+        } catch (Exception e) {
+            throw new JsonEncodeException("Failed to encode as JSON: " + e.getMessage());
+        }
+    }
+
+    /**
      * Get the JSON representation of the provided bytes array
      *
      * @param bytes bytes array containing JSON data

@@ -16,7 +16,6 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 
-import javax.xml.bind.DatatypeConverter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,15 +72,17 @@ public class RestJsonMessageConverter implements RestMessageConverter<byte[], by
         ConsumerRecord consumerRecord = new ConsumerRecord();
 
         consumerRecord.setTopic(record.topic());
-        consumerRecord.setKey(record.key().toString());
-        consumerRecord.setValue(record.value().toString());
+        consumerRecord.setKey(record.key() != null ?
+                JsonUtils.bytesToObject(record.key()) : null);
+        consumerRecord.setValue(record.value() != null ?
+                JsonUtils.bytesToObject(record.value()) : null);
         consumerRecord.setPartition(record.partition());
         consumerRecord.setOffset(record.offset());
 
         for (Header header: record.headers()) {
             KafkaHeader kafkaHeader = new KafkaHeader();
             kafkaHeader.setKey(header.key());
-            kafkaHeader.setValue(DatatypeConverter.printBase64Binary(header.value()).getBytes());
+            kafkaHeader.setValue(header.value());
             consumerRecord.getHeaders().add(kafkaHeader);
         }
         return consumerRecord;
