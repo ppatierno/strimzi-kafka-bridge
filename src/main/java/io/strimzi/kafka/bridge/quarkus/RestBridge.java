@@ -15,6 +15,7 @@ import io.strimzi.kafka.bridge.IllegalEmbeddedFormatException;
 import io.strimzi.kafka.bridge.http.HttpOpenApiOperations;
 import io.strimzi.kafka.bridge.http.converter.JsonUtils;
 import io.strimzi.kafka.bridge.http.model.HttpBridgeError;
+import io.strimzi.kafka.bridge.quarkus.beans.BridgeInfo;
 import io.strimzi.kafka.bridge.quarkus.beans.Consumer;
 import io.strimzi.kafka.bridge.quarkus.beans.ConsumerRecord;
 import io.strimzi.kafka.bridge.quarkus.beans.CreatedConsumer;
@@ -55,6 +56,8 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -62,14 +65,19 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("checkstyle:ClassFanOutComplexity")
 @Startup
@@ -319,30 +327,77 @@ public class RestBridge {
 
     @GET
     @Produces(BridgeContentType.JSON)
-    public CompletionStage<Response> info() {
+    public CompletionStage<BridgeInfo> info() {
+        log.tracef("info thread %s", Thread.currentThread());
         // Only maven built binary has this value set.
         String version = RestBridge.class.getPackage().getImplementationVersion();
-        ObjectNode versionJson = JsonUtils.createObjectNode();
-        versionJson.put("bridge_version", version == null ? "null" : version);
-        Response response = RestUtils.buildResponse(HttpResponseStatus.OK.code(),
-                BridgeContentType.JSON, JsonUtils.jsonToBytes(versionJson));
-        return CompletableFuture.completedStage(response);
+        BridgeInfo bridgeInfo = new BridgeInfo();
+        bridgeInfo.setBridgeVersion(version);
+        return CompletableFuture.completedStage(bridgeInfo);
     }
 
     @Path("/healthy")
     @GET
-    public CompletionStage<Response> healthy() {
-        HttpResponseStatus httpResponseStatus = this.isAlive() ? HttpResponseStatus.OK : HttpResponseStatus.NOT_FOUND;
-        Response response = RestUtils.buildResponse(httpResponseStatus.code(), null, null);
-        return CompletableFuture.completedStage(response);
+    public CompletionStage<Void> healthy() {
+        log.tracef("healthy thread %s", Thread.currentThread());
+        if (!this.isAlive()) {
+            throw new NotFoundException();
+        }
+        return CompletableFuture.completedStage(null);
     }
 
     @Path("/ready")
     @GET
-    public CompletionStage<Response> ready() {
-        HttpResponseStatus httpResponseStatus = this.isReady() ? HttpResponseStatus.OK : HttpResponseStatus.NOT_FOUND;
-        Response response = RestUtils.buildResponse(httpResponseStatus.code(), null, null);
-        return CompletableFuture.completedStage(response);
+    public CompletionStage<Void> ready() {
+        log.tracef("ready thread %s", Thread.currentThread());
+        if (!this.isReady()) {
+            throw new NotFoundException();
+        }
+        return CompletableFuture.completedStage(null);
+    }
+
+    @Path("/openapi")
+    @GET
+    @Produces(BridgeContentType.JSON)
+    public CompletionStage<String> openapi(@Context HttpHeaders httpHeaders) {
+        log.tracef("openapi thread %s", Thread.currentThread());
+        return CompletableFuture.supplyAsync(() -> {
+            log.tracef("openapi handler thread %s", Thread.currentThread());
+            InputStream is = getClass().getClassLoader().getResourceAsStream("openapiv3.json");
+            if (is == null) {
+                log.error("OpenAPI specification not found");
+                // this should not happen because the OpenAPI specification is baked into the jar
+                throw new InternalServerErrorException("OpenAPI specification not found");
+            }
+
+            String openapi;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                openapi = reader
+                        .lines()
+                        .collect(Collectors.joining("\n"));
+            } catch (IOException e) {
+                log.errorf("Failed to read OpenAPI JSON file", e);
+                throw new InternalServerErrorException(e);
+            }
+
+            String xForwardedPath = httpHeaders.getHeaderString("x-forwarded-path");
+            String xForwardedPrefix = httpHeaders.getHeaderString("x-forwarded-prefix");
+            if (xForwardedPath == null && xForwardedPrefix == null) {
+                return openapi;
+            } else {
+                String path = "/";
+                if (xForwardedPrefix != null) {
+                    path = xForwardedPrefix;
+                }
+                if (xForwardedPath != null) {
+                    path = xForwardedPath;
+                }
+                ObjectNode json = (ObjectNode) JsonUtils.bytesToJson(openapi.getBytes(StandardCharsets.UTF_8));
+                json.put("basePath", path);
+                openapi = new String(JsonUtils.jsonToBytes(json), StandardCharsets.UTF_8);
+            }
+            return openapi;
+        });
     }
 
     /**
