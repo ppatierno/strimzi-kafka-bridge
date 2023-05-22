@@ -13,4 +13,7 @@
     <!-- Suppressing unnecessary parentheses as in some cases it is better to use them for better code readilibity-->
     <suppress checks="UnnecessaryParentheses"
               files="io[/\\]strimzi[/\\].*"/>
+
+    <suppress checks="[a-zA-Z0-9]*"
+              files="[\\/]generated-sources/api[\\/]"/>
 </suppressions>

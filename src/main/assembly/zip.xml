@@ -21,13 +21,38 @@
             <fileMode>0755</fileMode>
         </fileSet>
         <fileSet>
+            <directory>${project.basedir}/target/quarkus-app/app</directory>
+            <outputDirectory>/app</outputDirectory>
+            <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/target/quarkus-app/lib</directory>
+            <outputDirectory>/lib</outputDirectory>
+            <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/target/quarkus-app/quarkus</directory>
+            <outputDirectory>/quarkus</outputDirectory>
+            <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/target/quarkus-app</directory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+            <outputDirectory>./</outputDirectory>
+            <includes>
+                <include>*.txt</include>
+                <include>*.jar</include>
+            </includes>
+            <fileMode>0644</fileMode>
+        </fileSet>
+        <fileSet>
             <directory>${project.basedir}</directory>
             <includes>
                 <include>README*</include>
                 <include>LICENSE*</include>
                 <include>CHANGELOG*</include>
             </includes>
-            <fileMode>0644</fileMode>
+            <fileMode>0777</fileMode>
         </fileSet>
     </fileSets>
     <dependencySets>

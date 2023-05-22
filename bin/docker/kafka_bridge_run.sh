@@ -24,9 +24,6 @@ echo "Kafka Bridge configuration:"
 "${MYPATH}"/kafka_bridge_config_generator.sh | tee /tmp/kafka-bridge.properties | sed 's/sasl.jaas.config=.*/sasl.jaas.config=[hidden]/g' | sed 's/password=.*/password=[hidden]/g'
 echo ""
 
-# Configure logging for Kubernetes deployments
-export KAFKA_BRIDGE_LOG4J_OPTS="-Dlog4j2.configurationFile=file:$STRIMZI_HOME/custom-config/log4j2.properties"
-
 # Configure Memory
 . "${MYPATH}"/dynamic_resources.sh
 
@@ -70,4 +67,4 @@ if [ "$FIPS_MODE" = "disabled" ]; then
 fi
 
 # starting Kafka Bridge with final configuration
-exec /usr/bin/tini -s -w -e 143 -- "${MYPATH}"/../kafka_bridge_run.sh --config-file=/tmp/kafka-bridge.properties "$@"
+exec /usr/bin/tini -s -w -e 143 -- "${MYPATH}"/../kafka_bridge_run.sh "$@"
