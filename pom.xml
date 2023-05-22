@@ -403,7 +403,7 @@
 									<ignoredUsedUndeclaredDependency>io.netty:netty-codec-http</ignoredUsedUndeclaredDependency>
 									<ignoredUsedUndeclaredDependency>io.netty:netty-common</ignoredUsedUndeclaredDependency>
 									<ignoredUsedUndeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUsedUndeclaredDependency>
-									<ignoredUsedUndeclaredDependency>org.quartz-scheduler:quartz</ignoredUsedUndeclaredDependency>
+									<ignoredUsedUndeclaredDependency>io.quarkus:quarkus-scheduler-api</ignoredUsedUndeclaredDependency>
 									<ignoredUsedUndeclaredDependency>com.fasterxml.jackson.core:jackson-annotations</ignoredUsedUndeclaredDependency>
 								</ignoredUsedUndeclaredDependencies>
 								<ignoredUnusedDeclaredDependencies>
@@ -411,7 +411,7 @@
 									<ignoredUnusedDeclaredDependency>io.strimzi:kafka-kubernetes-config-provider</ignoredUnusedDeclaredDependency>
 									<ignoredUnusedDeclaredDependency>io.strimzi:kafka-oauth-client</ignoredUnusedDeclaredDependency>
 									<ignoredUnusedDeclaredDependency>io.quarkus:quarkus-resteasy-reactive-jackson</ignoredUnusedDeclaredDependency>
-									<ignoredUnusedDeclaredDependency>io.quarkus:quarkus-quartz</ignoredUnusedDeclaredDependency>
+									<ignoredUnusedDeclaredDependency>io.quarkus:quarkus-scheduler</ignoredUnusedDeclaredDependency>
 									<ignoredUnusedDeclaredDependency>io.quarkus:quarkus-micrometer-registry-prometheus</ignoredUnusedDeclaredDependency>
 									<ignoredUnusedDeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUnusedDeclaredDependency>
 									<ignoredUnusedDeclaredDependency>io.quarkus:quarkus-opentelemetry</ignoredUnusedDeclaredDependency>
