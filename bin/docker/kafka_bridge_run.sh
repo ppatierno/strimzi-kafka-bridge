@@ -67,4 +67,4 @@ if [ "$FIPS_MODE" = "disabled" ]; then
 fi
 
 # starting Kafka Bridge with final configuration
-exec /usr/bin/tini -s -w -e 143 -- "${MYPATH}"/../kafka_bridge_run.sh "$@"
+exec /usr/bin/tini -s -w -e 143 -- "${MYPATH}"/../kafka_bridge_run.sh -Dquarkus.config.locations=/tmp/kafka-bridge.properties "$@"
