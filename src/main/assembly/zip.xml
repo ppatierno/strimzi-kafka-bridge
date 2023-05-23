@@ -31,11 +31,15 @@
             <fileMode>0755</fileMode>
         </fileSet>
         <fileSet>
+            <directory>${project.basedir}/target/quarkus-app/quarkus</directory>
+            <outputDirectory>/quarkus</outputDirectory>
+            <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
             <directory>${project.basedir}/target/quarkus-app</directory>
             <useDefaultExcludes>true</useDefaultExcludes>
             <outputDirectory>./</outputDirectory>
             <includes>
-                <include>*.txt</include>
                 <include>*.jar</include>
             </includes>
             <fileMode>0644</fileMode>
