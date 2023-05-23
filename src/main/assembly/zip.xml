@@ -31,11 +31,6 @@
             <fileMode>0755</fileMode>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/target/quarkus-app/quarkus</directory>
-            <outputDirectory>/quarkus</outputDirectory>
-            <fileMode>0755</fileMode>
-        </fileSet>
-        <fileSet>
             <directory>${project.basedir}/target/quarkus-app</directory>
             <useDefaultExcludes>true</useDefaultExcludes>
             <outputDirectory>./</outputDirectory>
@@ -55,12 +50,4 @@
             <fileMode>0644</fileMode>
         </fileSet>
     </fileSets>
-    <dependencySets>
-        <dependencySet>
-            <scope>runtime</scope>
-            <outputDirectory>/libs</outputDirectory>
-            <fileMode>0644</fileMode>
-            <outputFileNameMapping>${artifact.groupId}.${artifact.artifactId}-${artifact.version}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
-        </dependencySet>
-    </dependencySets>
 </assembly>
