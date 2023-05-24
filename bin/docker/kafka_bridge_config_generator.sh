@@ -148,10 +148,24 @@ HTTP_PROPERTIES=$(cat <<-EOF
 http.host=${KAFKA_BRIDGE_HTTP_HOST}
 http.port=${KAFKA_BRIDGE_HTTP_PORT}
 http.cors.enabled=${KAFKA_BRIDGE_CORS_ENABLED}
-http.cors.allowedOrigins=${KAFKA_BRIDGE_CORS_ALLOWED_ORIGINS}
-http.cors.allowedMethods=${KAFKA_BRIDGE_CORS_ALLOWED_METHODS}
 EOF
 )
+
+if [ "${KAFKA_BRIDGE_CORS_ALLOWED_ORIGINS}" ]; then
+        HTTP_PROPERTIES=$(cat <<EOF
+        $HTTP_PROPERTIES
+        http.cors.allowedOrigins=${KAFKA_BRIDGE_CORS_ALLOWED_ORIGINS}
+EOF
+)
+fi
+
+if [ "${KAFKA_BRIDGE_CORS_ALLOWED_METHOD}" ]; then
+        HTTP_PROPERTIES=$(cat <<EOF
+        $HTTP_PROPERTIES
+        http.cors.allowedMethods=${KAFKA_BRIDGE_CORS_ALLOWED_METHODS}
+EOF
+)
+fi
 
 PROPERTIES=$(cat <<EOF
 $BRIDGE_PROPERTIES

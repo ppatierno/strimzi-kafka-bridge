@@ -66,5 +66,7 @@ if [ "$FIPS_MODE" = "disabled" ]; then
     export JAVA_OPTS="${JAVA_OPTS} -Dcom.redhat.fips=false"
 fi
 
+for var in ${!KAFKA_BRIDGE_*} ; do unset ${var} ; done
+export JAVA_OPTS="${JAVA_OPTS} -Dquarkus.config.locations=/tmp/kafka-bridge.properties"
 # starting Kafka Bridge with final configuration
 exec /usr/bin/tini -s -w -e 143 -- "${MYPATH}"/../kafka_bridge_run.sh -Dquarkus.config.locations=/tmp/kafka-bridge.properties "$@"
