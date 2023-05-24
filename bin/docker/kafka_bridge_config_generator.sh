@@ -151,6 +151,7 @@ http.cors.enabled=${KAFKA_BRIDGE_CORS_ENABLED}
 EOF
 )
 
+# Doing this since Quarkus doesn't allow empty configuration parameters if the env var is not set by the operator
 if [ "${KAFKA_BRIDGE_CORS_ALLOWED_ORIGINS}" ]; then
         HTTP_PROPERTIES=$(cat <<EOF
         $HTTP_PROPERTIES
@@ -159,6 +160,7 @@ EOF
 )
 fi
 
+# Doing this since Quarkus doesn't allow empty configuration parameters if the env var is not set by the operator
 if [ "${KAFKA_BRIDGE_CORS_ALLOWED_METHOD}" ]; then
         HTTP_PROPERTIES=$(cat <<EOF
         $HTTP_PROPERTIES
