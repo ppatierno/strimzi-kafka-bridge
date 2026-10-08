@@ -5,11 +5,42 @@ ARG TARGETPLATFORM
 USER root
 
 RUN microdnf update -y \
-    && microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y java-${JAVA_VERSION}-openjdk-headless openssl shadow-utils \
+    #&& microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y java-${JAVA_VERSION}-openjdk-headless openssl shadow-utils \
+    && microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y openssl shadow-utils tar gzip \
     && microdnf clean all -y
 
 # Set JAVA_HOME env var
-ENV JAVA_HOME=/usr/lib/jvm/jre-${JAVA_VERSION}
+# ENV JAVA_HOME=/usr/lib/jvm/jre-${JAVA_VERSION}
+
+#####
+# Add Java 25 EA JRE
+#####
+ENV JAVA25_JRE_VERSION=jdk-25.0.5%2B7-ea-beta
+ENV JAVA25_JRE_SHA256_AMD64=1e74e28cf15ad57681d0a5d2b9f3c59fede42a695b3ebf599785964d1bafef1a
+ENV JAVA25_JRE_SHA256_ARM64=2711f9cbce1ca685d9ec699d838ba10eab58d482658a0f0c5fa7ea94f45c0b09
+ENV JAVA25_JRE_SHA256_PPC64LE=d95c24c67dc914c9feb60bfb35e3b3eeaa5416d519ff156378554f10916b5a15
+ENV JAVA25_JRE_SHA256_S390X=baad469ec4bc427294cc3b86a516b962b61e8a35b2b9d3d8635c50a7a6f80533
+
+RUN set -ex; \
+    if [[ ${TARGETPLATFORM} = "linux/ppc64le" ]]; then \
+        curl -s -L https://github.com/adoptium/temurin25-binaries/releases/download/${JAVA25_JRE_VERSION}/OpenJDK25U-jre_ppc64le_linux_hotspot_25.0.5_7-ea.tar.gz -o /tmp/java25-jre.tar.gz; \
+        echo "${JAVA25_JRE_SHA256_PPC64LE} */tmp/java25-jre.tar.gz" | sha256sum -c; \
+    elif [[ ${TARGETPLATFORM} = "linux/arm64" ]]; then \
+        curl -s -L https://github.com/adoptium/temurin25-binaries/releases/download/${JAVA25_JRE_VERSION}/OpenJDK25U-jre_aarch64_linux_hotspot_25.0.5_7-ea.tar.gz -o /tmp/java25-jre.tar.gz; \
+        echo "${JAVA25_JRE_SHA256_ARM64} */tmp/java25-jre.tar.gz" | sha256sum -c; \
+    elif [[ ${TARGETPLATFORM} = "linux/s390x" ]]; then \
+        curl -s -L https://github.com/adoptium/temurin25-binaries/releases/download/${JAVA25_JRE_VERSION}/OpenJDK25U-jre_s390x_linux_hotspot_25.0.5_7-ea.tar.gz -o /tmp/java25-jre.tar.gz; \
+        echo "${JAVA25_JRE_SHA256_S390X} */tmp/java25-jre.tar.gz" | sha256sum -c; \
+    else \
+        curl -s -L https://github.com/adoptium/temurin25-binaries/releases/download/${JAVA25_JRE_VERSION}/OpenJDK25U-jre_x64_linux_hotspot_25.0.5_7-ea.tar.gz -o /tmp/java25-jre.tar.gz; \
+        echo "${JAVA25_JRE_SHA256_AMD64} */tmp/java25-jre.tar.gz" | sha256sum -c; \
+    fi; \
+    mkdir -p /usr/lib/jvm/java-25; \
+    tar -xzf /tmp/java25-jre.tar.gz -C /usr/lib/jvm/java-25 --strip-components=1; \
+    rm /tmp/java25-jre.tar.gz
+
+ENV JAVA_HOME=/usr/lib/jvm/java-25
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Add strimzi user with UID 1001
 # The user is in the group 0 to have access to the mounted volumes and storage
